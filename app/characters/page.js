@@ -1,100 +1,89 @@
 "use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
+import React, { useState, useEffect } from 'react';
+import Layout from '../components/layout';
+import { fetchAniListData } from '../utils/anilist';
+import Image from 'next/image';
 
-const CharactersPage = () => {
-  const [characterName, setCharacterName] = useState('');
-  const [charactersData, setCharactersData] = useState(null);
+const CharacterPage = () => {
+  const [characters, setCharacters] = useState([]);
 
-  const fetchCharacters = async () => {
-    try {
-      const response = await fetch('https://graphql.anilist.co', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          query: `
-            query ($search: String, $page: Int, $perPage: Int) {
-              Page (page: $page, perPage: $perPage) {
-                characters(search: $search) {
-                  nodes {
-                    id
-                    name {
-                      first
-                      last
-                    }
-                  }
-                  pageInfo {
-                    total
-                    perPage
-                    currentPage
-                    lastPage
-                    hasNextPage
-                  }
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const page = 1; // You can adjust this based on your requirements
+        const perPage = 10; // Number of characters per page
+
+        const query = `
+          query ($page: Int, $perPage: Int) {
+            Page (page: $page, perPage: $perPage) {
+              characters {
+                image {
+                  large
+                  medium
                 }
+                name {
+                  first
+                  last
+                } 
+              }
+              pageInfo {
+                total
+                currentPage
+                lastPage
+                hasNextPage
+                perPage
               }
             }
-          `,
-          variables: {
-            search: characterName,
-            page: 1,
-            perPage: 10,
+          }
+        `;
+
+        const variables = {
+          page,
+          perPage,
+        };
+
+        const data = await fetchAniListData(query, variables);
+        console.log('API Response:', data);
+
+        const characterList = data.Page.characters.map((character) => ({
+          name: `${character.name.first} ${character.name.last}`,
+          image: {
+            large: character.image.large,
+            medium: character.image.medium,
           },
-        }),
-      });
+        }));
+        console.log('Characters:', characterList);
 
-      const data = await response.json();
-      if (data.errors) {
-        console.error('Error fetching characters:', data.errors);
-        return;
+        setCharacters(characterList);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        // Handle errors as needed
       }
-      setCharactersData(data.data.Page.characters);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-  };
+    };
 
-  const handleCharacterNameChange = (event) => {
-    setCharacterName(event.target.value);
-  };
-
-  const handleSearchClick = () => {
-    fetchCharacters();
-  };
+    fetchData();
+  }, []); // Empty dependency array to execute the effect only once on mount
 
   return (
-    <div>
-      <h1>Characters</h1>
+    <Layout>
       <div>
-        <label htmlFor="characterName">Search by Name:</label>
-        <input
-          type="text"
-          id="characterName"
-          value={characterName}
-          onChange={handleCharacterNameChange}
-        />
-        <button onClick={handleSearchClick}>Search</button>
-      </div>
-      {charactersData && (
-        <div>
-          <h2>Characters:</h2>
-          <ul>
-            {charactersData.nodes.map((character) => (
-              <li key={character.id}>
-                <Link href={`/characters/${character.id}`}>
-                  <a>{character.name.first} {character.name.last}</a>
-                </Link>
+        <h1>Characters</h1>
+        <ul>
+          {Array.isArray(characters) && characters.length > 0 ? (
+            characters.map((character, index) => (
+              <li key={index}>
+                <p>Name: {character.name}</p>
+                <img src={character.image.medium} alt={character.name} />
               </li>
-            ))}
-          </ul>
-          <p>Page {charactersData.pageInfo.currentPage} of {charactersData.pageInfo.lastPage}</p>
-        </div>
-      )}
-    </div>
+            ))
+          ) : (
+            <li>No characters available.</li>
+          )}
+        </ul>
+      </div>
+    </Layout>
   );
 };
 
-export default CharactersPage;
+export default CharacterPage;

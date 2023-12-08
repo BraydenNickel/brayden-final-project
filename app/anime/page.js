@@ -1,84 +1,139 @@
 "use client";
 
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import Layout from '../components/layout';
+import { fetchAniListData } from '../utils/anilist';
 
 const AnimePage = () => {
-  const [animeName, setAnimeName] = useState('');
-  const [animeData, setAnimeData] = useState(null);
+  const [animeTitles, setAnimeTitles] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [showDescriptions, setShowDescriptions] = useState({});
 
-  const fetchAnime = async () => {
-    try {
-      const response = await fetch('https://graphql.anilist.co', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          query: `
-            query ($search: String, $page: Int, $perPage: Int) {
-              Page (page: $page, perPage: $perPage) {
-                media(search: $search, type: ANIME) {
-                  id
-                  title {
-                    romaji
-                  }
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const perPage = 20; // Number of titles per page
+
+        const query = `
+          query ($page: Int, $perPage: Int) {
+            Page (page: $page, perPage: $perPage) {
+              media {
+                coverImage {
+                    large
+                    medium
+                    }
+                title {
+                  romaji
+                  english
+                  native
                 }
+                episodes
+                description
+                genres
+              }
+              pageInfo {
+                total
+                currentPage
+                lastPage
+                hasNextPage
+                perPage
               }
             }
-          `,
-          variables: {
-            search: animeName,
-            page: 1,
-            perPage: 10,
+          }
+        `;
+
+        const variables = {
+          page : currentPage,
+          perPage,
+        };
+
+        const data = await fetchAniListData(query, variables);
+        console.log('API Response:', data);
+
+        const titles = data.Page.media.map((media) => ({
+          title: {
+            english: media.title.english,
+            romaji: media.title.romaji,
+            native: media.title.native,
           },
-        }),
-      });
+            coverImage: {
+                large: media.coverImage.large,
+                medium: media.coverImage.medium,
+            },
+          episodes: media.episodes,
+          description: media.description,
+          genres: media.genres,
+        }));
 
-      const data = await response.json();
-      if (data.errors) {
-        console.error('Error fetching anime:', data.errors);
-        return;
+        setAnimeTitles(titles);
+        setTotalPages(data.Page.pageInfo.lastPage);
+
+        const initialShowDescriptions = titles.reduce((acc, anime) => {
+            acc[anime.title.english || anime.title.romaji || anime.title.native] = false;
+            return acc;
+          }, {});
+  
+          setShowDescriptions(initialShowDescriptions);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        // Handle errors as needed
       }
-      setAnimeData(data.data.Page.media);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
+    };
+
+    fetchData();
+  }, [currentPage]); 
+
+  const handleNextPage = () => {
+    setCurrentPage((prevPage) => Math.min(prevPage + 1, totalPages));
   };
 
-  const handleAnimeNameChange = (event) => {
-    setAnimeName(event.target.value);
+  const handlePrevPage = () => {
+    setCurrentPage((prevPage) => Math.max(prevPage - 1, 1));
   };
 
-  const handleSearchClick = () => {
-    fetchAnime();
+  const toggleDescription = (titleKey) => {
+    setShowDescriptions((prevShowDescriptions) => ({
+      ...prevShowDescriptions,
+      [titleKey]: !prevShowDescriptions[titleKey],
+    }));
   };
 
   return (
-    <div>
-      <h1>Anime Page</h1>
+    <Layout>
       <div>
-        <label htmlFor="animeName">Search by Name:</label>
-        <input
-          type="text"
-          id="animeName"
-          value={animeName}
-          onChange={handleAnimeNameChange}
-        />
-        <button onClick={handleSearchClick}>Search</button>
-      </div>
-      {animeData && (
+        <h1>Anime Titles</h1>
+        <ul>
+          {Array.isArray(animeTitles) && animeTitles.length > 0 ? (
+            animeTitles.map((anime, index) => (
+              <li key={index}>
+                <img 
+                src={anime.coverImage.large} 
+                alt={anime.title.english}
+                onClick={() => toggleDescription (anime.title.english || anime.title.romaji || anime.title.native)} />
+                <h3>{anime.title.english || anime.title.romaji || anime.title.native}</h3>
+                <p>Episodes: {anime.episodes}</p>
+                <p>Genres: {anime.genres.join(', ')}</p>
+                {showDescriptions[anime.title.english || anime.title.romaji || anime.title.native] && (
+                  <p>Description: {anime.description}</p>
+                )}
+              </li>
+            ))
+          ) : (
+            <li>No anime titles available.</li>
+          )}
+        </ul>
         <div>
-          <h2>Anime:</h2>
-          <ul>
-            {animeData.map((anime) => (
-              <li key={anime.id}>{anime.title.romaji}</li>
-            ))}
-          </ul>
-          {/* Pagination can be added here */}
+          <button onClick={handlePrevPage} disabled={currentPage === 1}>
+            Previous Page
+          </button>
+          <span>Page {currentPage} of {totalPages}</span>
+          <button onClick={handleNextPage} disabled={currentPage === totalPages}>
+            Next Page
+          </button>
         </div>
-      )}
-    </div>
+      </div>
+    </Layout>
   );
 };
 

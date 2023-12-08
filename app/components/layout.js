@@ -5,65 +5,69 @@ import Link from 'next/link';
 import Image from 'next/image';
 import AnimeCentral from '../assets/AnimeCb.jpg'
 
-const Layout = ({ children }) => {
+const Layout = ({ children, onSearch }) => {
     const [searchQuery, setSearchQuery] = useState('');
 
     const handleSearch = () => {
         // Implement your search logic here
     };
-  return (
-    <div className='flex flex-col h-screen'>
-      {/* Header */}
-      <header className='flex justify-between items-center p-4 bg-grey-800 text-white'>
-        <div className='flex items-center'>
-          {/* Logo */}
-          <Link href={"./page"}>
-            <Image src={AnimeCentral} 
-            alt="Anime Central Logo"
-            width={300}
-            height={50}
-            className='rounded-full px-2 py-4'
-             />
-          </Link>
+    return (
+        <div className='flex h-screen'>
+          {/* Navigation Bar */}
+          <nav className='flex flex-col bg-slate-500 text-white p-4 border-r border-white'>
+            <div className='mb-4'>
+              {/* Logo */}
+              <Link href="/">
+                  <Image
+                    src={AnimeCentral}
+                    alt="Anime Central Logo"
+                    width={300}
+                    height={50}
+                    className=''
+                  />
+              </Link>
+            </div>
+            {/* Header */}
+            <header className='border-b border-white pb-2 mb-4'>
+              <h1 className='text-red-400 text-4xl text-center'>Anime Cental</h1>
+            </header>
+            <ul className='text-2xl py-4 px-2'>
+                <li className=''>
+                    <Link href="/">Home</Link>
+                </li>
+                <li className='my-2'>
+                    <Link href="/characters"> Characters </Link>
+                </li>
+                <li className='my-2'>
+                    <Link href="/anime">Anime</Link>
+                </li>
+            </ul>
+            {/* Search Bar */}
+            <div className='mt-auto'>
+              {/* Implement your search bar functionality here */}
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <button className='bg-green-700 text-white px-2 py-1 ml-2' onClick={handleSearch}>
+                Search
+              </button>
+            </div>
+          </nav>
+    
+          {/* Main Content */}
+          <main className='flex-1 p-4'>
+            {/* Page Content */}
+            {children}
+          </main>
+    
+          {/* Footer */}
+          <footer>
+            {/* Add footer content if needed */}
+          </footer>
         </div>
-        <div>
-            <h1 className='text-red-400 text-4xl'>Anime Cental</h1>
-        </div>
-        {/* Search Bar */}
-        <div className='ml-4'>
-          {/* Implement your search bar functionality here */}
-          <input 
-          className='border border-grey-500 rounded px-2 py-1'
-          type="text" 
-          placeholder="Search..." 
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}/>
-          <button className='bg-grey-500 text-white px-2 py-1 ml-2' onClick={handleSearch}>
-            Search
-          </button>
-        </div>
-      </header>
-
-      {/* Navigation Bar */}
-      <nav className='flex flex-col bg-grey-800 text-white p-4'>
-        <ul className='text-3xl'>
-          <li className='mb-2'>
-            <Link href={"./characters"}> Characters </Link>
-          </li>
-          <li>
-            <Link href={"./anime"}>Anime</Link>
-          </li>
-        </ul>
-      </nav>
-
-      {/* Main Content */}
-      <main>{children}</main>
-
-      {/* Footer */}
-      <footer>
-        {/* Add footer content if needed */}
-      </footer>
-    </div>
-    );
-}
+      );
+    };
 export default Layout;
