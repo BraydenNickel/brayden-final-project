@@ -1,0 +1,8 @@
+.navbar {
+    background: url('../assets/Navbg.jpg') repeat-y;
+}
+.backdrop {
+    background: url('../assets/backdrop.png') no-repeat;
+    background-attachment: scroll;
+    background-position: center;
+}

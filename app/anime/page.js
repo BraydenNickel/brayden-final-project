@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/layout';
 import { fetchAniListData } from '../utils/anilist';
+import AnimeCard from './animecard';
 
-const AnimePage = () => {
+const AnimePage = ( ) => {
   const [animeTitles, setAnimeTitles] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -13,7 +14,7 @@ const AnimePage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const perPage = 20; // Number of titles per page
+        const perPage = 21; // Number of titles per page
 
         const query = `
           query ($page: Int, $perPage: Int) {
@@ -101,37 +102,47 @@ const AnimePage = () => {
 
   return (
     <Layout>
-      <div>
+      <div className=''>
+        <header className='text-4xl'>
         <h1>Anime Titles</h1>
-        <ul>
-          {Array.isArray(animeTitles) && animeTitles.length > 0 ? (
-            animeTitles.map((anime, index) => (
-              <li key={index}>
-                <img 
-                src={anime.coverImage.large} 
-                alt={anime.title.english}
-                onClick={() => toggleDescription (anime.title.english || anime.title.romaji || anime.title.native)} />
-                <h3>{anime.title.english || anime.title.romaji || anime.title.native}</h3>
-                <p>Episodes: {anime.episodes}</p>
-                <p>Genres: {anime.genres.join(', ')}</p>
-                {showDescriptions[anime.title.english || anime.title.romaji || anime.title.native] && (
-                  <p>Description: {anime.description}</p>
-                )}
-              </li>
-            ))
-          ) : (
-            <li>No anime titles available.</li>
-          )}
+        </header>
+        <ul className='flex flex-wrap'>
+            {Array.isArray(animeTitles) && animeTitles.length > 0 ? (
+                animeTitles.map((anime, index) => (
+                <li key={index}>
+                    <AnimeCard
+                    image={anime.coverImage.large}
+                    title={anime.title.english || anime.title.romaji || anime.title.native}
+                    episodes={anime.episodes}
+                    genres={anime.genres}
+                    description={anime.description}
+                    toggleDescription={toggleDescription}
+                    showDescription={showDescriptions[anime.title.english || anime.title.romaji || anime.title.native]}
+                    />
+                </li>
+                ))
+            ) : (
+                <li>No anime titles available.</li>
+            )}
         </ul>
-        <div>
-          <button onClick={handlePrevPage} disabled={currentPage === 1}>
-            Previous Page
-          </button>
-          <span>Page {currentPage} of {totalPages}</span>
-          <button onClick={handleNextPage} disabled={currentPage === totalPages}>
-            Next Page
-          </button>
-        </div>
+        <div className='flex flex-col items-center justify-center'
+            style={{marginRight: '290px'}}>
+                <div className='bg-gradient-to-b from-black from-75% to-slate-300 border border-white m-2 p-4 w-full max-w-fit'>
+                <button onClick={handlePrevPage} 
+                disabled={currentPage === 1} 
+                className='bg-red-700 text-white hover:bg-red-800 p-2'
+                >
+                    Previous
+                </button>
+                <span className='p-2'>Page {currentPage} of {totalPages}</span>
+                <button onClick={handleNextPage} 
+                disabled={currentPage === totalPages} 
+                className='bg-red-700 text-white hover:bg-red-800 p-2'
+                >
+                    Next
+                </button>
+                </div>
+            </div>
       </div>
     </Layout>
   );

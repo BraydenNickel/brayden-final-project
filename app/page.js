@@ -1,15 +1,14 @@
-import Link from 'next/link';
 import Layout from './components/layout';
 
 export default function HomePage() {
   return (
     <Layout>
-      <div>
-        <h1>Welcome to Anime Central</h1>
-        <p>Explore characters and anime with AniList data.</p>
-        <Link href={"./characters"}> Characters</Link>
-        <br />
-        <Link href={"./anime"}>Anime</Link>
+      <div className='bg-gradient-to-b from-black from-75% to-slate-300 border border-white m-2 p-4 w-full max-w-fit'>
+        <h1 className=' text-4xl text-center'>Welcome to Anime Central</h1>
+        <div className='text-2xl my-2 py-2'>
+          <p>Explore characters and anime with data gathered from the AniList API.</p>
+          <p>This is my final project for web development 2 at SAIT</p>
+        </div>
       </div>
     </Layout>
   )
