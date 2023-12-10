@@ -97,7 +97,9 @@ const CharacterPage = () => {
   return (
     <Layout>
       <div>
+        <header className='text-4xl'>
         <h1>Characters</h1>
+        </header>
         <ul className='flex flex-wrap'>
           {Array.isArray(characters) && characters.length > 0 ? (
             characters.map((character, index) => (
