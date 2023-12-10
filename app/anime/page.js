@@ -104,7 +104,7 @@ const AnimePage = ( ) => {
     <Layout>
       <div className=''>
         <header className='text-4xl'>
-        <h1>Anime Titles</h1>
+        <h1>Anime</h1>
         </header>
         <ul className='flex flex-wrap'>
             {Array.isArray(animeTitles) && animeTitles.length > 0 ? (
